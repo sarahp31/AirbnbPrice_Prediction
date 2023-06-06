@@ -79,3 +79,51 @@ def plot_coefModeloLasso(coeficientes_dict):
         
         # Exiba o gráfico
         plt.show()
+
+def lista_coefcients(diciconario, value_dic):
+    return diciconario[value_dic]
+
+
+def plot_coefPermutationTest(diferencas_amostradas, T_obs, nomeFeature):
+    plt.hist(diferencas_amostradas, bins=30, density=True, edgecolor='black')
+    plt.axvline(T_obs, color='red', linestyle='--', label='T_obs')
+    plt.xlabel('Sample Differences')
+    plt.ylabel('Frequency')
+    plt.legend()
+    plt.title(f'{nomeFeature}: Distribution of coefficients')
+    plt.show()
+
+
+def permutaionTeste_EntireHouse(listaFetures, coefCity1, coefCity2):
+
+    for feture in listaFetures:
+        coefcients1 = lista_coefcients(coefCity1, feture)
+        coefcients2 = lista_coefcients(coefCity2, feture)
+
+        T_obs = np.mean(coefcients1) - np.mean(coefcients2)
+
+        num_permutation = 1000
+        #num_samples = 500
+
+        differences_samples = []
+
+        # for _ in range(num_permutation):
+        #     sample1 = np.random.choice(coefcients1, size=num_samples, replace=True)
+        #     sample2 = np.random.choice(coefcients2, size=num_samples, replace=True)
+
+        #     difference = np.mean(sample1) - np.mean(sample2)
+        #     differences_samples.append(difference)
+        all_coefcients = np.concatenate((coefcients1, coefcients2))
+
+        for _ in range(num_permutation):
+            np.random.shuffle(all_coefcients)
+
+            sample1 = all_coefcients[:len(coefcients1)]
+            sample2 = all_coefcients[len(coefcients1):]
+
+            difference = np.mean(sample1) - np.mean(sample2)
+            differences_samples.append(difference)
+
+        plot_coefPermutationTest(differences_samples, T_obs, feture)
+
+        num_permutation_GIT = sum(d >= T_obs for d in differences_samples)
